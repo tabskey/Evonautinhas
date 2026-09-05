@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>TesteEscola | Gestao escolar</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="shell">
+        <header class="topbar">
+            <div class="school-logo" aria-label="Placeholder do logo da escola">LOGO</div>
+            <div class="brand-mark">TE</div>
+            <div class="school-identity">
+                <p class="eyebrow">TesteEscola</p>
+                <h1>Painel de matriculas</h1>
+            </div>
+            <label class="api-config">
+                <span>API</span>
+                <input id="api-base-url" value="" placeholder="mesma origem" aria-label="URL base da API">
+            </label>
+        </header>
+
+        <main>
+            <section class="hero-grid">
+                <div class="hero-copy">
+                    <p class="eyebrow">Visao geral</p>
+                    <h2>Alunos certos, turmas cheias de possibilidades.</h2>
+                    <p class="lede">Acompanhe a base de alunos e a ocupacao das turmas em um unico lugar.</p>
+                    <div class="hero-actions">
+                        <button class="button button-primary" id="refresh-all" type="button">Atualizar dados</button>
+                        <span id="last-updated" class="muted">Aguardando conexao</span>
+                    </div>
+                </div>
+                <div class="stat-strip">
+                    <div class="stat-card"><span>Alunos listados</span><strong id="active-count">--</strong></div>
+                    <div class="stat-card"><span>Turmas</span><strong id="class-count">--</strong></div>
+                    <div class="stat-card"><span>Vagas livres</span><strong id="spot-count">--</strong></div>
+                </div>
+            </section>
+
+            <section class="content-grid">
+                <div class="panel panel-wide">
+                    <div class="panel-heading">
+                        <div>
+                            <p class="eyebrow">Cadastro</p>
+                            <h3>Alunos</h3>
+                        </div>
+                        <form id="search-form" class="search-form">
+                            <label class="sr-only" for="student-search">Buscar aluno</label>
+                            <input id="student-search" placeholder="Buscar por nome" autocomplete="off">
+                            <button class="button button-quiet" type="submit">Buscar</button>
+                            <label class="include-inactive"><input id="include-inactive" type="checkbox"> Incluir inativos</label>
+                        </form>
+                    </div>
+                    <output id="student-feedback" class="feedback"></output>
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr><th>ID</th><th>Aluno</th><th>E-mail</th><th>Nascimento</th><th>Turma</th><th>Status</th></tr>
+                            </thead>
+                            <tbody id="students-body"></tbody>
+                        </table>
+                    </div>
+                    <div class="pagination">
+                        <button class="button button-quiet" id="previous-page" type="button">Anterior</button>
+                        <span id="page-label">Pagina 1</span>
+                        <button class="button button-quiet" id="next-page" type="button">Proxima</button>
+                    </div>
+                </div>
+
+                <aside class="panel form-panel">
+                    <p class="eyebrow">Novo registro</p>
+                    <h3>Adicionar aluno</h3>
+                    <form id="student-form">
+                        <label for="student-name">Nome</label>
+                        <input id="student-name" required maxlength="120">
+                        <label for="student-email">E-mail</label>
+                        <input id="student-email" type="email" required maxlength="120">
+                        <label for="student-birth">Data de nascimento</label>
+                        <input id="student-birth" type="date" required>
+                        <button class="button button-primary" type="submit">Cadastrar aluno</button>
+                    </form>
+                    <output id="form-feedback" class="feedback"></output>
+                </aside>
+            </section>
+
+            <section class="panel report-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">SQL ao vivo</p>
+                        <h3>Ocupacao das turmas</h3>
+                    </div>
+                    <button class="button button-quiet" id="refresh-report" type="button">Atualizar relatorio</button>
+                </div>
+                <div class="report-grid" id="report-grid"></div>
+            </section>
+
+            <section class="panel enrollment-panel">
+                <div class="panel-heading">
+                    <div>
+                        <p class="eyebrow">Operacao transacional</p>
+                        <h3>Nova matricula</h3>
+                    </div>
+                    <span class="muted">Aluno ativo + vaga disponivel</span>
+                </div>
+                <form id="enrollment-form" class="enrollment-form">
+                    <label for="enrollment-student-id">ID do aluno</label>
+                    <input id="enrollment-student-id" type="number" min="1" required placeholder="Ex.: 1">
+                    <label for="enrollment-class-id">Turma</label>
+                    <select id="enrollment-class-id" required>
+                        <option value="">Carregando turmas...</option>
+                    </select>
+                    <button class="button button-primary" type="submit">Efetivar matricula</button>
+                </form>
+                <output id="enrollment-feedback" class="feedback"></output>
+            </section>
+        </main>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

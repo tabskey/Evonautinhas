@@ -1,3 +1,4 @@
 <Solution>
-  <Project Path="Evonautinhas.csproj" />
+  <Project Path="Evonautinhas.csproj" Id="c308bbbb-3b34-4c68-8d63-69fd8b2201a6" />
+  <Project Path="Evonautinhas.Tests\Evonautinhas.Tests.csproj" />
 </Solution>

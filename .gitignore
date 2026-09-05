@@ -250,6 +250,11 @@ orleans.codegen.cs
 
 # RIA/Silverlight projects
 Generated_Code/
+ 
+
+# Agent instructions (uso interno de desenvolvimento)
+AGENTS.md
+docs/
 
 # Backup & report files from converting an old project file
 # to a newer Visual Studio version. Backup files are not needed,
