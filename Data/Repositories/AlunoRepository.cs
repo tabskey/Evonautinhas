@@ -17,14 +17,27 @@ namespace Evonautinhas.Data.Repositories
             _databaseContext = databaseContext;
         }
 
-        public async Task<IEnumerable<Aluno>> GetAllAsync(string nome, int offset, int pageSize)
+        public async Task<IEnumerable<Aluno>> GetAllAsync(string nome, bool incluirInativos, int offset, int pageSize)
         {
             const string sql = @"
-                SELECT Id, Nome, Email, DataNascimento, Ativo, DataCadastro
-                FROM Aluno
-                WHERE (@Nome IS NULL OR Nome LIKE '%' + @Nome + '%')
-                  AND Ativo = 1
-                ORDER BY Nome
+                                SELECT
+                                        a.Id,
+                                        a.Nome,
+                                        a.Email,
+                                        a.DataNascimento,
+                                        a.Ativo,
+                                        a.DataCadastro,
+                                        STUFF((
+                                                SELECT ', ' + t.Nome
+                                                FROM Matricula AS m
+                                                INNER JOIN Turma AS t ON t.Id = m.TurmaId
+                                                WHERE m.AlunoId = a.Id
+                                                FOR XML PATH(''), TYPE
+                                        ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS Turmas
+                                FROM Aluno AS a
+                                WHERE (@Nome IS NULL OR a.Nome LIKE '%' + @Nome + '%')
+                                    AND (@IncluirInativos = 1 OR a.Ativo = 1)
+                                ORDER BY a.Nome
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             using (var connection = _databaseContext.CreateConnection())
@@ -33,6 +46,7 @@ namespace Evonautinhas.Data.Repositories
                 return await connection.QueryAsync<Aluno>(sql, new
                 {
                     Nome = string.IsNullOrWhiteSpace(nome) ? null : nome,
+                    IncluirInativos = incluirInativos,
                     Offset = offset,
                     PageSize = pageSize
                 });
@@ -53,13 +67,13 @@ namespace Evonautinhas.Data.Repositories
             }
         }
 
-        public async Task<int> CountAsync(string nome)
+        public async Task<int> CountAsync(string nome, bool incluirInativos)
         {
             const string sql = @"
                 SELECT COUNT(1)
                 FROM Aluno
                 WHERE (@Nome IS NULL OR Nome LIKE '%' + @Nome + '%')
-                  AND Ativo = 1;";
+                  AND (@IncluirInativos = 1 OR Ativo = 1);";
 
             using (var connection = _databaseContext.CreateConnection())
             {
@@ -67,6 +81,7 @@ namespace Evonautinhas.Data.Repositories
                 return await connection.ExecuteScalarAsync<int>(sql, new
                 {
                     Nome = string.IsNullOrWhiteSpace(nome) ? null : nome
+                    , IncluirInativos = incluirInativos
                 });
             }
         }

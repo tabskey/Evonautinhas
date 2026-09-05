@@ -21,10 +21,10 @@ namespace Evonautinhas.API.Controllers
 
         [HttpGet]
         [Route("")]
-        public async Task<IHttpActionResult> GetAll(string nome = null, int pagina = 1, int tamanho = 10)
+        public async Task<IHttpActionResult> GetAll(string nome = null, bool incluirInativos = false, int pagina = 1, int tamanho = 10)
         {
-            var itens = await _alunoService.GetAllAsync(nome, pagina, tamanho);
-            var total = await _alunoService.CountAsync(nome);
+            var itens = await _alunoService.GetAllAsync(nome, incluirInativos, pagina, tamanho);
+            var total = await _alunoService.CountAsync(nome, incluirInativos);
             return Ok(new
             {
                 total,

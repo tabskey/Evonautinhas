@@ -17,14 +17,14 @@ namespace Evonautinhas.Business.Services
             _alunoRepository = alunoRepository;
         }
 
-        public Task<IEnumerable<Aluno>> GetAllAsync(string nome, int pagina, int tamanho)
+        public Task<IEnumerable<Aluno>> GetAllAsync(string nome, bool incluirInativos, int pagina, int tamanho)
         {
             if (pagina < 1 || tamanho < 1)
             {
                 throw new ValidationException("Página e tamanho devem ser maiores que zero.");
             }
 
-            return _alunoRepository.GetAllAsync(nome, (pagina - 1) * tamanho, tamanho);
+            return _alunoRepository.GetAllAsync(nome, incluirInativos, (pagina - 1) * tamanho, tamanho);
         }
 
         public Task<Aluno> GetByIdAsync(int id)
@@ -33,9 +33,9 @@ namespace Evonautinhas.Business.Services
             return _alunoRepository.GetByIdAsync(id);
         }
 
-        public Task<int> CountAsync(string nome)
+        public Task<int> CountAsync(string nome, bool incluirInativos)
         {
-            return _alunoRepository.CountAsync(nome);
+            return _alunoRepository.CountAsync(nome, incluirInativos);
         }
 
         public async Task<int> CreateAsync(Aluno aluno)

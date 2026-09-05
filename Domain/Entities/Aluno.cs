@@ -10,5 +10,6 @@ namespace Evonautinhas.Domain.Entities
         public DateTime DataNascimento { get; set; }
         public bool Ativo { get; set; }
         public DateTime DataCadastro { get; set; }
+        public string Turmas { get; set; }
     }
 }
