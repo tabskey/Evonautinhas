@@ -12,9 +12,9 @@ namespace Evonautinhas.Business.Cache
         public async Task<T> GetOrSetAsync<T>(string key, Func<Task<T>> factory, TimeSpan expiration)
         {
             var cached = _cache.Get(key);
-            if (cached is T)
+            if (cached is T cachedValue)
             {
-                return (T)cached;
+                return cachedValue;
             }
 
             var value = await factory();
