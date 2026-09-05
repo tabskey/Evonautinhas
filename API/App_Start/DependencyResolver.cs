@@ -50,6 +50,11 @@ namespace Evonautinhas.API.App_Start
                 return new MatriculasController(CreateMatriculaService());
             }
 
+            if (serviceType == typeof(RelatoriosController))
+            {
+                return new RelatoriosController(new RelatorioService(new RelatorioRepository(_databaseContext)));
+            }
+
             if (serviceType == typeof(IAlunoService))
             {
                 return new AlunoService(_alunoRepository);
