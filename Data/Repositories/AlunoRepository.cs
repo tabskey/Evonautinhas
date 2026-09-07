@@ -35,9 +35,9 @@ namespace Evonautinhas.Data.Repositories
                                                 FOR XML PATH(''), TYPE
                                         ).value('.', 'NVARCHAR(MAX)'), 1, 2, '') AS Turmas
                                 FROM Aluno AS a
-                                WHERE (@Nome IS NULL OR a.Nome LIKE '%' + @Nome + '%')
+                                WHERE (@Nome IS NULL OR a.Nome LIKE '%' + @Nome + '%' ESCAPE '\')
                                     AND (@IncluirInativos = 1 OR a.Ativo = 1)
-                                ORDER BY a.Nome
+                                ORDER BY a.Id
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             using (var connection = _databaseContext.CreateConnection())
@@ -45,7 +45,7 @@ namespace Evonautinhas.Data.Repositories
                 await connection.OpenAsync();
                 return await connection.QueryAsync<Aluno>(sql, new
                 {
-                    Nome = string.IsNullOrWhiteSpace(nome) ? null : nome,
+                    Nome = EscapeLikePattern(nome),
                     IncluirInativos = incluirInativos,
                     Offset = offset,
                     PageSize = pageSize
@@ -67,12 +67,26 @@ namespace Evonautinhas.Data.Repositories
             }
         }
 
+        public async Task<Aluno> GetByEmailAsync(string email)
+        {
+            const string sql = @"
+                SELECT Id, Nome, Email, DataNascimento, Ativo, DataCadastro
+                FROM Aluno
+                WHERE Email = @Email;";
+
+            using (var connection = _databaseContext.CreateConnection())
+            {
+                await connection.OpenAsync();
+                return await connection.QuerySingleOrDefaultAsync<Aluno>(sql, new { Email = email });
+            }
+        }
+
         public async Task<int> CountAsync(string nome, bool incluirInativos)
         {
             const string sql = @"
                 SELECT COUNT(1)
                 FROM Aluno
-                WHERE (@Nome IS NULL OR Nome LIKE '%' + @Nome + '%')
+                WHERE (@Nome IS NULL OR Nome LIKE '%' + @Nome + '%' ESCAPE '\')
                   AND (@IncluirInativos = 1 OR Ativo = 1);";
 
             using (var connection = _databaseContext.CreateConnection())
@@ -80,7 +94,7 @@ namespace Evonautinhas.Data.Repositories
                 await connection.OpenAsync();
                 return await connection.ExecuteScalarAsync<int>(sql, new
                 {
-                    Nome = string.IsNullOrWhiteSpace(nome) ? null : nome
+                    Nome = EscapeLikePattern(nome)
                     , IncluirInativos = incluirInativos
                 });
             }
@@ -102,9 +116,25 @@ namespace Evonautinhas.Data.Repositories
 
         public async Task<bool> UpdateAsync(Aluno aluno)
         {
+            // Ativo NÃO é alterado aqui: arquivamento (soft delete) só acontece via DeleteAsync.
             const string sql = @"
                 UPDATE Aluno
-                SET Nome = @Nome, Email = @Email, DataNascimento = @DataNascimento, Ativo = @Ativo
+                SET Nome = @Nome, Email = @Email, DataNascimento = @DataNascimento
+                WHERE Id = @Id;";
+
+            using (var connection = _databaseContext.CreateConnection())
+            {
+                await connection.OpenAsync();
+                return await connection.ExecuteAsync(sql, aluno) > 0;
+            }
+        }
+
+        public async Task<bool> ReactivateAsync(Aluno aluno)
+        {
+            // Reinscrição de aluno arquivado: atualiza os dados informados e volta Ativo = 1.
+            const string sql = @"
+                UPDATE Aluno
+                SET Nome = @Nome, Email = @Email, DataNascimento = @DataNascimento, Ativo = 1
                 WHERE Id = @Id;";
 
             using (var connection = _databaseContext.CreateConnection())
@@ -126,6 +156,20 @@ namespace Evonautinhas.Data.Repositories
                 await connection.OpenAsync();
                 return await connection.ExecuteAsync(sql, new { Id = id }) > 0;
             }
+        }
+
+        private static string EscapeLikePattern(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term))
+            {
+                return null;
+            }
+
+            // Escapa curingas do LIKE para que % e _ sejam tratados como texto literal.
+            return term
+                .Replace("\\", "\\\\")
+                .Replace("%", "\\%")
+                .Replace("_", "\\_");
         }
     }
 }

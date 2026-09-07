@@ -1,4 +1,4 @@
-using System;
+using System.Data.SqlClient;
 using System.Threading.Tasks;
 using Evonautinhas.Data.Context;
 using Evonautinhas.Domain.Entities;
@@ -48,7 +48,6 @@ namespace Evonautinhas.Business.Services
                             throw new BusinessRuleException("Aluno já está matriculado nesta turma.");
                         }
 
-                        matricula.DataMatricula = DateTime.UtcNow;
                         var id = await _matriculaRepository.CreateAsync(matricula, transaction);
 
                         if (!await _turmaRepository.UpdateAvailableSpotsAsync(matricula.TurmaId, -1, transaction))
@@ -59,6 +58,12 @@ namespace Evonautinhas.Business.Services
                         transaction.Commit();
                         _turmaService.InvalidarCache();
                         return id;
+                    }
+                    catch (SqlException ex) when (ex.Number == 2601 || ex.Number == 2627)
+                    {
+                        // Violação do UNIQUE (AlunoId, TurmaId) por corrida entre requests.
+                        transaction.Rollback();
+                        throw new BusinessRuleException("Aluno já está matriculado nesta turma.", ex);
                     }
                     catch
                     {

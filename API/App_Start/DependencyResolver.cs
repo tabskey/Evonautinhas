@@ -11,76 +11,24 @@ using Evonautinhas.Domain.Interfaces.Services;
 
 namespace Evonautinhas.API.App_Start
 {
-    public class DependencyResolver : IDependencyResolver
+
+    public sealed class DependencyResolver : IDependencyResolver
     {
-        private readonly DatabaseContext _databaseContext;
-        private readonly IAlunoRepository _alunoRepository;
-        private readonly ITurmaRepository _turmaRepository;
-        private readonly IMatriculaRepository _matriculaRepository;
         private readonly ICacheService _cacheService;
 
         public DependencyResolver()
         {
-            _databaseContext = new DatabaseContext();
-            _alunoRepository = new AlunoRepository(_databaseContext);
-            _turmaRepository = new TurmaRepository(_databaseContext);
-            _matriculaRepository = new MatriculaRepository(_databaseContext);
             _cacheService = new MemoryCacheService();
         }
 
         public IDependencyScope BeginScope()
         {
-            return this;
+            return new DependencyScope(_cacheService);
         }
 
         public object GetService(Type serviceType)
         {
-            if (serviceType == typeof(AlunosController))
-            {
-                return new AlunosController(new AlunoService(_alunoRepository));
-            }
-
-            if (serviceType == typeof(TurmasController))
-            {
-                return new TurmasController(new TurmaService(_turmaRepository, _cacheService));
-            }
-
-            if (serviceType == typeof(MatriculasController))
-            {
-                return new MatriculasController(CreateMatriculaService());
-            }
-
-            if (serviceType == typeof(RelatoriosController))
-            {
-                return new RelatoriosController(new RelatorioService(new RelatorioRepository(_databaseContext)));
-            }
-
-            if (serviceType == typeof(IAlunoService))
-            {
-                return new AlunoService(_alunoRepository);
-            }
-
-            if (serviceType == typeof(ITurmaService))
-            {
-                return new TurmaService(_turmaRepository, _cacheService);
-            }
-
-            if (serviceType == typeof(IMatriculaService))
-            {
-                return CreateMatriculaService();
-            }
-
             return null;
-        }
-
-        private IMatriculaService CreateMatriculaService()
-        {
-            return new MatriculaService(
-                _databaseContext,
-                _alunoRepository,
-                _turmaRepository,
-                _matriculaRepository,
-                new TurmaService(_turmaRepository, _cacheService));
         }
 
         public IEnumerable<object> GetServices(Type serviceType)
@@ -90,12 +38,85 @@ namespace Evonautinhas.API.App_Start
 
         public void Dispose()
         {
-            Dispose(true);
-            GC.SuppressFinalize(this);
+
+        }
+    }
+
+    internal sealed class DependencyScope : IDependencyScope
+    {
+        private readonly IAlunoService _alunoService;
+        private readonly ITurmaService _turmaService;
+        private readonly IMatriculaService _matriculaService;
+        private readonly IRelatorioService _relatorioService;
+
+        private bool _disposed;
+
+        public DependencyScope(ICacheService cacheService)
+        {
+            var databaseContext = new DatabaseContext();
+            var alunoRepository = new AlunoRepository(databaseContext);
+            var turmaRepository = new TurmaRepository(databaseContext);
+            var matriculaRepository = new MatriculaRepository(databaseContext);
+            var relatorioRepository = new RelatorioRepository(databaseContext);
+
+            _alunoService = new AlunoService(alunoRepository);
+            _turmaService = new TurmaService(turmaRepository, cacheService);
+            _matriculaService = new MatriculaService(
+                databaseContext,
+                alunoRepository,
+                turmaRepository,
+                matriculaRepository,
+                _turmaService);
+            _relatorioService = new RelatorioService(relatorioRepository);
         }
 
-        protected virtual void Dispose(bool disposing)
+        public IDependencyScope BeginScope()
         {
+            throw new NotSupportedException("Este container não suporta escopos aninhados.");
+        }
+
+        public object GetService(Type serviceType)
+        {
+            if (serviceType == typeof(AlunosController))
+                return new AlunosController(_alunoService);
+
+            if (serviceType == typeof(TurmasController))
+                return new TurmasController(_turmaService);
+
+            if (serviceType == typeof(MatriculasController))
+                return new MatriculasController(_matriculaService);
+
+            if (serviceType == typeof(RelatoriosController))
+                return new RelatoriosController(_relatorioService);
+
+            if (serviceType == typeof(IAlunoService))
+                return _alunoService;
+
+            if (serviceType == typeof(ITurmaService))
+                return _turmaService;
+
+            if (serviceType == typeof(IMatriculaService))
+                return _matriculaService;
+
+            if (serviceType == typeof(IRelatorioService))
+                return _relatorioService;
+
+            return null;
+        }
+
+        public IEnumerable<object> GetServices(Type serviceType)
+        {
+            return new object[0];
+        }
+
+        public void Dispose()
+        {
+            if (_disposed)
+                return;
+
+            _disposed = true;
+
+     
         }
     }
 }

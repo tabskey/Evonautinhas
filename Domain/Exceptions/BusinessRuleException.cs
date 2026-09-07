@@ -8,5 +8,10 @@ namespace Evonautinhas.Domain.Exceptions
             : base(message)
         {
         }
+
+        public BusinessRuleException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
     }
 }

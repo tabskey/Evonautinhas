@@ -68,13 +68,13 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Domain\Entities\Aluno.cs" />
     <Compile Include="Domain\Entities\Turma.cs" />
     <Compile Include="Domain\Entities\Matricula.cs" />
     <Compile Include="Domain\Entities\RelatorioAlunosPorTurma.cs" />
     <Compile Include="Domain\Exceptions\ValidationException.cs" />
+    <Compile Include="Domain\Exceptions\ArchivedStudentException.cs" />
     <Compile Include="Domain\Exceptions\BusinessRuleException.cs" />
     <Compile Include="Domain\Exceptions\NotFoundException.cs" />
     <Compile Include="Domain\Interfaces\Repositories\IAlunoRepository.cs" />
@@ -116,6 +116,8 @@
     <Content Include="UI\index.html" />
     <Content Include="UI\styles.css" />
     <Content Include="UI\app.js" />
+    <Content Include="assets\astronauta_vetorizado.svg" />
+    <Content Include="assets\perfil.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
