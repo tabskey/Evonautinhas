@@ -5,8 +5,7 @@
     var pageSize = 8;
 
     function apiUrl(path) {
-        var baseUrl = $('#api-base-url').val().replace(/\/$/, '');
-        return baseUrl + path;
+        return path;
     }
 
     function showFeedback(selector, message, isError) {
@@ -25,8 +24,10 @@
             $('#students-body').html(rows.length ? rows.map(function (student) {
                 var active = student.Ativo !== undefined ? student.Ativo : student.ativo;
                 var status = active ? 'Ativo' : 'Inativo';
-                return '<tr><td class="student-id">' + (student.Id !== undefined ? student.Id : student.id) + '</td><td>' + escapeHtml(student.Nome || student.nome) + '</td><td>' + escapeHtml(student.Email || student.email) + '</td><td>' + formatDate(student.DataNascimento || student.dataNascimento) + '</td><td>' + escapeHtml(student.Turmas || student.turmas || 'Sem turma') + '</td><td><span class="status ' + (active ? '' : 'inactive') + '">' + status + '</span></td></tr>';
-            }).join('') : '<tr><td colspan="6">Nenhum aluno encontrado.</td></tr>');
+                var studentId = student.Id !== undefined ? student.Id : student.id;
+                var action = active ? '<button class="button button-archive" type="button" data-student-id="' + studentId + '" title="Excluir aluno logicamente">Arquivar</button>' : '<span class="muted">Arquivado</span>';
+                return '<tr><td class="student-id">' + studentId + '</td><td>' + escapeHtml(student.Nome || student.nome) + '</td><td>' + escapeHtml(student.Email || student.email) + '</td><td>' + formatDate(student.DataNascimento || student.dataNascimento) + '</td><td>' + escapeHtml(student.Turmas || student.turmas || 'Sem turma') + '</td><td><span class="status ' + (active ? '' : 'inactive') + '">' + status + '</span></td><td>' + action + '</td></tr>';
+            }).join('') : '<tr><td colspan="7">Nenhum aluno encontrado.</td></tr>');
             var currentPage = data.Pagina || data.pagina || page;
             var totalPages = data.TotalPaginas || data.totalPaginas || 1;
             $('#page-label').text('Pagina ' + currentPage + ' de ' + totalPages);
@@ -112,6 +113,23 @@
         });
     }
 
+    function archiveStudent(studentId) {
+        if (!window.confirm('Arquivar este aluno? O registro será mantido no banco como inativo.')) {
+            return;
+        }
+
+        showFeedback('#student-feedback', 'Arquivando aluno...', false);
+        $.ajax({
+            url: apiUrl('/api/alunos/' + studentId),
+            method: 'DELETE'
+        }).done(function () {
+            showFeedback('#student-feedback', 'Aluno arquivado. O registro foi mantido como inativo.', false);
+            loadStudents();
+        }).fail(function (xhr) {
+            showFeedback('#student-feedback', errorMessage(xhr), true);
+        });
+    }
+
     function formatDate(value) {
         if (!value) return '--';
         return value.substring(0, 10).split('-').reverse().join('/');
@@ -128,6 +146,9 @@
     $('#search-form').on('submit', function (event) { event.preventDefault(); page = 1; loadStudents(); });
     $('#include-inactive').on('change', function () { page = 1; loadStudents(); });
     $('#student-form').on('submit', submitStudent);
+    $('#students-body').on('click', '.button-archive', function () {
+        archiveStudent($(this).data('student-id'));
+    });
     $('#enrollment-form').on('submit', submitEnrollment);
     $('#previous-page').on('click', function () { if (page > 1) { page--; loadStudents(); } });
     $('#next-page').on('click', function () { page++; loadStudents(); });

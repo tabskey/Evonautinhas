@@ -116,6 +116,8 @@
     <Content Include="UI\index.html" />
     <Content Include="UI\styles.css" />
     <Content Include="UI\app.js" />
+    <Content Include="assets\astronauta_vetorizado.svg" />
+    <Content Include="assets\perfil.jpg" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

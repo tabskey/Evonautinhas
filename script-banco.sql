@@ -15,8 +15,8 @@ GO
 
 CREATE TABLE dbo.Aluno (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Nome VARCHAR(120) NOT NULL,
-    Email VARCHAR(120) NOT NULL,
+    Nome NVARCHAR(120) NOT NULL,
+    Email NVARCHAR(120) NOT NULL,
     DataNascimento DATE NOT NULL,
     Ativo BIT NOT NULL DEFAULT 1,
     DataCadastro DATETIME NOT NULL DEFAULT GETDATE()
@@ -24,8 +24,8 @@ CREATE TABLE dbo.Aluno (
 
 CREATE TABLE dbo.Turma (
     Id INT IDENTITY(1,1) PRIMARY KEY,
-    Nome VARCHAR(80) NOT NULL,
-    Periodo VARCHAR(20) NOT NULL,        -- Manha, Tarde ou Noite
+    Nome NVARCHAR(80) NOT NULL,
+    Periodo NVARCHAR(20) NOT NULL,        -- Manha, Tarde ou Noite
     VagasTotal INT NOT NULL,
     VagasDisponiveis INT NOT NULL
 );

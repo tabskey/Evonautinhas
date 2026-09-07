@@ -37,7 +37,7 @@ namespace Evonautinhas.Data.Repositories
                                 FROM Aluno AS a
                                 WHERE (@Nome IS NULL OR a.Nome LIKE '%' + @Nome + '%')
                                     AND (@IncluirInativos = 1 OR a.Ativo = 1)
-                                ORDER BY a.Nome
+                                ORDER BY a.Id
                 OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;";
 
             using (var connection = _databaseContext.CreateConnection())
