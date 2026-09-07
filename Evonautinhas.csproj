@@ -74,6 +74,7 @@
     <Compile Include="Domain\Entities\Matricula.cs" />
     <Compile Include="Domain\Entities\RelatorioAlunosPorTurma.cs" />
     <Compile Include="Domain\Exceptions\ValidationException.cs" />
+    <Compile Include="Domain\Exceptions\ArchivedStudentException.cs" />
     <Compile Include="Domain\Exceptions\BusinessRuleException.cs" />
     <Compile Include="Domain\Exceptions\NotFoundException.cs" />
     <Compile Include="Domain\Interfaces\Repositories\IAlunoRepository.cs" />

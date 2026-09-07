@@ -68,6 +68,21 @@ namespace Evonautinhas.API.Controllers
             return atualizado == null ? (IHttpActionResult)NotFound() : Ok(atualizado);
         }
 
+        [HttpPost]
+        [Route("{id:int}/reativar")]
+        public async Task<IHttpActionResult> Reativar(int id, AlunoRequest request)
+        {
+            var aluno = ToEntity(request);
+            aluno.Id = id;
+            if (!await _alunoService.ReactivateAsync(aluno))
+            {
+                return NotFound();
+            }
+
+            var atualizado = await _alunoService.GetByIdAsync(id);
+            return atualizado == null ? (IHttpActionResult)NotFound() : Ok(atualizado);
+        }
+
         [HttpDelete]
         [Route("{id:int}")]
         public async Task<IHttpActionResult> Delete(int id)

@@ -67,6 +67,20 @@ namespace Evonautinhas.Data.Repositories
             }
         }
 
+        public async Task<Aluno> GetByEmailAsync(string email)
+        {
+            const string sql = @"
+                SELECT Id, Nome, Email, DataNascimento, Ativo, DataCadastro
+                FROM Aluno
+                WHERE Email = @Email;";
+
+            using (var connection = _databaseContext.CreateConnection())
+            {
+                await connection.OpenAsync();
+                return await connection.QuerySingleOrDefaultAsync<Aluno>(sql, new { Email = email });
+            }
+        }
+
         public async Task<int> CountAsync(string nome, bool incluirInativos)
         {
             const string sql = @"
@@ -106,6 +120,21 @@ namespace Evonautinhas.Data.Repositories
             const string sql = @"
                 UPDATE Aluno
                 SET Nome = @Nome, Email = @Email, DataNascimento = @DataNascimento
+                WHERE Id = @Id;";
+
+            using (var connection = _databaseContext.CreateConnection())
+            {
+                await connection.OpenAsync();
+                return await connection.ExecuteAsync(sql, aluno) > 0;
+            }
+        }
+
+        public async Task<bool> ReactivateAsync(Aluno aluno)
+        {
+            // Reinscrição de aluno arquivado: atualiza os dados informados e volta Ativo = 1.
+            const string sql = @"
+                UPDATE Aluno
+                SET Nome = @Nome, Email = @Email, DataNascimento = @DataNascimento, Ativo = 1
                 WHERE Id = @Id;";
 
             using (var connection = _databaseContext.CreateConnection())

@@ -88,6 +88,11 @@
             page = 1;
             loadStudents();
         }).fail(function (xhr) {
+            var data = xhr.responseJSON || {};
+            if (data.errorCode === 'ALUNO_ARQUIVADO' && data.alunoId) {
+                offerReactivation(data);
+                return;
+            }
             showFeedback('#form-feedback', errorMessage(xhr), true);
         });
     }
@@ -127,6 +132,34 @@
             loadStudents();
         }).fail(function (xhr) {
             showFeedback('#student-feedback', errorMessage(xhr), true);
+        });
+    }
+
+    function offerReactivation(data) {
+        var payload = {
+            nome: $('#student-name').val(),
+            email: $('#student-email').val(),
+            dataNascimento: $('#student-birth').val()
+        };
+        var confirmado = window.confirm(data.message + '\n\nDeseja reativar este cadastro com os dados informados?');
+        if (!confirmado) {
+            showFeedback('#form-feedback', 'Reativacao cancelada. Nenhum cadastro foi alterado.', false);
+            return;
+        }
+
+        showFeedback('#form-feedback', 'Reativando cadastro...', false);
+        $.ajax({
+            url: apiUrl('/api/alunos/' + data.alunoId + '/reativar'),
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(payload)
+        }).done(function () {
+            $('#student-form')[0].reset();
+            showFeedback('#form-feedback', 'Aluno arquivado reativado com sucesso.', false);
+            page = 1;
+            loadStudents();
+        }).fail(function (xhr) {
+            showFeedback('#form-feedback', errorMessage(xhr), true);
         });
     }
 

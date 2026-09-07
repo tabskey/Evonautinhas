@@ -376,5 +376,61 @@ namespace Evonautinhas.Tests.Integration
                     DataNascimento = new DateTime(2006, 3, 14)
                 }));
         }
+
+        [Test]
+        public async Task CriarAlunoComEmailDeArquivado_DeveSinalizarReativacao()
+        {
+            // Diego (id 4) está inativo no seed.
+            var ex = Assert.ThrowsAsync<ArchivedStudentException>(() =>
+                _alunoService.CreateAsync(new Aluno
+                {
+                    Nome = "Diego Ferreira",
+                    Email = "diego.ferreira@email.com",
+                    DataNascimento = new DateTime(2005, 1, 30)
+                }));
+
+            Assert.That(ex.AlunoId, Is.EqualTo(4));
+            StringAssert.Contains("arquivado", ex.Message);
+        }
+
+        [Test]
+        public async Task ReativarAlunoArquivado_DeveAtualizarDadosEVoltarAtivo()
+        {
+            var reativado = await _alunoService.ReactivateAsync(new Aluno
+            {
+                Id = 4,
+                Nome = "Diego Ferreira (Reinscrito)",
+                Email = "diego.ferreira@email.com",
+                DataNascimento = new DateTime(2005, 1, 30)
+            });
+            Assert.That(reativado, Is.True);
+
+            var persistido = await _alunoRepository.GetByIdAsync(4);
+            Assert.That(persistido.Ativo, Is.True);
+            Assert.That(persistido.Nome, Is.EqualTo("Diego Ferreira (Reinscrito)"));
+
+            // Ativo de novo: um novo cadastro com o mesmo e-mail vira 409 comum (duplicado).
+            Assert.ThrowsAsync<BusinessRuleException>(() =>
+                _alunoService.CreateAsync(new Aluno
+                {
+                    Nome = "Diego de novo",
+                    Email = "diego.ferreira@email.com",
+                    DataNascimento = new DateTime(2005, 1, 30)
+                }));
+        }
+
+        [Test]
+        public async Task ReativarAlunoInexistente_DeveRetornarFalse()
+        {
+            var resultado = await _alunoService.ReactivateAsync(new Aluno
+            {
+                Id = 9999,
+                Nome = "Ninguém",
+                Email = "ninguem@teste.com",
+                DataNascimento = new DateTime(2005, 1, 1)
+            });
+
+            Assert.That(resultado, Is.False);
+        }
     }
 }

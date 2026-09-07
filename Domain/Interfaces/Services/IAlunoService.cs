@@ -11,6 +11,7 @@ namespace Evonautinhas.Domain.Interfaces.Services
         Task<Aluno> GetByIdAsync(int id);
         Task<int> CreateAsync(Aluno aluno);
         Task<bool> UpdateAsync(Aluno aluno);
+        Task<bool> ReactivateAsync(Aluno aluno);
         Task<bool> DeleteAsync(int id);
     }
 }

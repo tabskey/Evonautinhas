@@ -10,6 +10,17 @@ namespace Evonautinhas.API.Filters
     {
         public override void OnException(HttpActionExecutedContext context)
         {
+            if (context.Exception is ArchivedStudentException archived)
+            {
+                context.Response = context.Request.CreateResponse(HttpStatusCode.Conflict, new
+                {
+                    message = archived.Message,
+                    errorCode = "ALUNO_ARQUIVADO",
+                    alunoId = archived.AlunoId
+                });
+                return;
+            }
+
             var status = HttpStatusCode.InternalServerError;
             if (context.Exception is ValidationException)
             {

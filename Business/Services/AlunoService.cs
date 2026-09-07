@@ -55,6 +55,22 @@ namespace Evonautinhas.Business.Services
         public async Task<int> CreateAsync(Aluno aluno)
         {
             ValidateAluno(aluno);
+
+            // Se o e-mail pertence a um cadastro já existente, decide o caminho:
+            // ativo → duplicidade real (409); arquivado → oferece reativação.
+            var existing = await _alunoRepository.GetByEmailAsync(aluno.Email);
+            if (existing != null)
+            {
+                if (existing.Ativo)
+                {
+                    throw new BusinessRuleException("Já existe um aluno cadastrado com este e-mail.");
+                }
+
+                throw new ArchivedStudentException(
+                    existing.Id,
+                    "Já existe um aluno arquivado com este e-mail (" + existing.Nome + ").");
+            }
+
             aluno.Ativo = true;
             try
             {
@@ -73,6 +89,20 @@ namespace Evonautinhas.Business.Services
             try
             {
                 return await _alunoRepository.UpdateAsync(aluno);
+            }
+            catch (SqlException ex) when (IsUniqueViolation(ex))
+            {
+                throw new BusinessRuleException("Já existe um aluno cadastrado com este e-mail.", ex);
+            }
+        }
+
+        public async Task<bool> ReactivateAsync(Aluno aluno)
+        {
+            ValidateAluno(aluno);
+            ValidateId(aluno.Id);
+            try
+            {
+                return await _alunoRepository.ReactivateAsync(aluno);
             }
             catch (SqlException ex) when (IsUniqueViolation(ex))
             {
