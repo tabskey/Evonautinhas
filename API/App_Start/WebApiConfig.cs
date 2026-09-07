@@ -1,10 +1,5 @@
 using System.Web.Http;
-using Evonautinhas.API.Controllers;
-using Evonautinhas.Business.Cache;
-using Evonautinhas.Business.Services;
-using Evonautinhas.Data.Context;
-using Evonautinhas.Data.Repositories;
-using Evonautinhas.Domain.Interfaces.Services;
+using Newtonsoft.Json.Serialization;
 
 namespace Evonautinhas.API.App_Start
 {
@@ -14,6 +9,10 @@ namespace Evonautinhas.API.App_Start
         {
             config.MapHttpAttributeRoutes();
             config.DependencyResolver = new DependencyResolver();
+
+            // API com contrato JSON em camelCase, como documentado.
+            var jsonFormatter = config.Formatters.JsonFormatter;
+            jsonFormatter.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
         }
     }
 }

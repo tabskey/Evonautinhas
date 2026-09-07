@@ -38,6 +38,10 @@ CREATE TABLE dbo.Matricula (
 );
 GO
 
+ALTER TABLE dbo.Aluno ADD CONSTRAINT UQ_Aluno_Email UNIQUE (Email);
+ALTER TABLE dbo.Matricula ADD CONSTRAINT UQ_Matricula_Aluno_Turma UNIQUE (AlunoId, TurmaId);
+GO
+
 INSERT INTO dbo.Aluno (Nome, Email, DataNascimento, Ativo) VALUES
 ('Ana Souza',       'ana.souza@email.com',      '2006-03-14', 1),
 ('Bruno Lima',      'bruno.lima@email.com',     '2005-11-02', 1),

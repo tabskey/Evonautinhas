@@ -62,7 +62,10 @@ namespace Evonautinhas.API.Controllers
                 return NotFound();
             }
 
-            return Ok(aluno);
+            // Devolve o estado persistido (o arquivamento via PUT deixou de ser possível;
+            // Ativo só muda via DELETE lógico).
+            var atualizado = await _alunoService.GetByIdAsync(id);
+            return atualizado == null ? (IHttpActionResult)NotFound() : Ok(atualizado);
         }
 
         [HttpDelete]

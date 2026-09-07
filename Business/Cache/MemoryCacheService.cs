@@ -1,5 +1,6 @@
 using System;
 using System.Runtime.Caching;
+using System.Threading;
 using System.Threading.Tasks;
 using Evonautinhas.Domain.Interfaces.Services;
 
@@ -11,15 +12,17 @@ namespace Evonautinhas.Business.Cache
 
         public async Task<T> GetOrSetAsync<T>(string key, Func<Task<T>> factory, TimeSpan expiration)
         {
-            var cached = _cache.Get(key);
-            if (cached is T cachedValue)
+            if (_cache.Get(key) is Lazy<Task<T>> cachedEntry)
             {
-                return cachedValue;
+                return await ReadAsync(key, cachedEntry);
             }
 
-            var value = await factory();
-            _cache.Set(key, value, DateTimeOffset.UtcNow.Add(expiration));
-            return value;
+            // Lazy + AddOrGetExisting (atômico) evita cache stampede: mesmo com
+            // acessos concorrentes, a factory executa uma única vez por chave.
+            var candidate = new Lazy<Task<T>>(factory, LazyThreadSafetyMode.ExecutionAndPublication);
+            var existing = _cache.AddOrGetExisting(key, candidate, DateTimeOffset.UtcNow.Add(expiration)) as Lazy<Task<T>>;
+
+            return await ReadAsync(key, existing ?? candidate);
         }
 
         public void Remove(string key)
@@ -32,6 +35,20 @@ namespace Evonautinhas.Business.Cache
             foreach (var item in _cache)
             {
                 _cache.Remove(item.Key);
+            }
+        }
+
+        private async Task<T> ReadAsync<T>(string key, Lazy<Task<T>> entry)
+        {
+            try
+            {
+                return await entry.Value;
+            }
+            catch
+            {
+                // Não manter falha em cache: a próxima chamada tenta carregar de novo.
+                _cache.Remove(key);
+                throw;
             }
         }
     }
