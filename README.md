@@ -47,6 +47,7 @@ A interface fica dentro do próprio projeto e inclui:
 * 🔎 Busca e paginação de alunos
 * ➕ Cadastro de alunos
 * 🗃️ Arquivamento lógico de alunos, mantendo o registro com `Ativo = 0`
+* ↩️ Reativação de alunos arquivados — aviso no cadastro quando o e-mail pertence a um aluno inativo
 * 📝 Matrícula em turmas
 * 📈 Visualização da ocupação das turmas
 * 📊 Consulta de relatório de alunos por turma
@@ -145,6 +146,8 @@ POST   /api/alunos
 PUT    /api/alunos/{id}
 
 DELETE /api/alunos/{id}
+
+POST   /api/alunos/{id}/reativar
 ```
 
 ### 🛰️ Turmas
